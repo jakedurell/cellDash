@@ -2,19 +2,50 @@ var map;
 var circles = [];
 var slider = document.getElementById("myRange");
 var output = document.getElementById("demo");
-let totalMin = 1250
+let totalMin = 1350
 let range = 5
 let minLower = totalMin - range
 let minUpper = totalMin + range
 
-let rangePercent = range/(slider.max - slider.min)
+let rangePercent = (2*range) / (slider.max - slider.min)
+var style = document.querySelector('[data="test"]');
 
-console.log(minLower + " to " + minUpper)
+// $(".input[type=range]::-webkit-slider-thumb").css("width", (rangePercent * 100) + "%")
+
 
 output.innerHTML = "Between " + display(minLower) + " and " + display(minUpper);
-// output.innerHTML = display(slider.value); // Display the default slider value
+style.innerHTML = ".slider::-webkit-slider-thumb { width: " + (rangePercent * 100) + "%" + " !important; }";
+plotPoints()
 
-console.log(rangePercent)
+function plotPoints() {
+    for (let i = 0; i < cellPoints.length; i++) {
+        // $("pointPlot").append("<div class = 'pointPlots'></div>");
+
+        var $newdiv1 = $("<div class='pointPlots' id='point" + i + "'></div>")
+        $(".pointPlot").append($newdiv1);
+
+
+        var hms = cellPoints[i].Time; // your input string
+        var a = hms.split(':'); // split it at the colons
+        var minutes = (+a[0]) * 60 + (+a[1]) + (+a[2] / 60);
+
+        let totalRange = slider.max - slider.min
+        let leftPercent = ((minutes - slider.min)/totalRange-(rangePercent/2))*100-.5
+
+        console.log(leftPercent)
+
+        $(`#point${i}`).css({'left': `${Math.floor(leftPercent)}%`})
+
+        // $(`#point${i}`).css({'top': `${550+i*2}px`})
+    }
+}
+
+
+
+
+
+
+console.log(document.body.clientWidth)
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('cellLocationMap'), {
@@ -59,7 +90,7 @@ function drawCircles() {
         var a = hms.split(':'); // split it at the colons
 
         // Hours are worth 60 minutes.
-        var minutes = (+a[0]) * 60 + (+a[1]) + (+a[2]/60);
+        var minutes = (+a[0]) * 60 + (+a[1]) + (+a[2] / 60);
 
         // console.log(minutes);
 
@@ -118,14 +149,15 @@ function display(a) {
     if (hours >= 12) {
         hours = hours - 12
         amPm = "pm"
-    } 
-    else  {amPm = "am"} 
+    } else {
+        amPm = "am"
+    }
     var minutes = a % 60;
-    return (hours + ":" + pad(minutes,2) + amPm);
+    return (hours + ":" + pad(minutes, 2) + amPm);
 }
 
 function pad(num, size) {
-    var s = num+"";
+    var s = num + "";
     while (s.length < size) s = "0" + s;
     return s;
 }

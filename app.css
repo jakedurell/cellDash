@@ -40,18 +40,36 @@ p {
     text-align: center;
 }
 
+.rangeInputs {
+    display: flex;
+    flex-direction: column;
+    width: 100px;
+}
+.pointPlot {
+    display: flex;
+    flex-direction: row;
+}
+.pointPlots {
+    position:absolute;
+    width: 1%;
+    height: 25px;
+    background-color: lightblue;
+    opacity: .3;
+    border: solid 1px black;
+}
+
 /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */ 
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none; /* Override default look */
     appearance: none;
-    width: 250px; /* Set a specific slider handle width */
+    width: 100%; /* Set a specific slider handle width */
     height: 25px; /* Slider handle height */
     background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
 }
 
 .slider::-moz-range-thumb {
-    width: 25px; /* Set a specific slider handle width */
+    width: 100%; /* Set a specific slider handle width */
     height: 25px; /* Slider handle height */
     background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
