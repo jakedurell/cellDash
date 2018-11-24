@@ -40,6 +40,17 @@ p {
     text-align: center;
 }
 
+.flagged {
+    color: red;
+}
+
+
+h3 {
+    font-size: 20px;
+    text-align: left;
+}
+
+
 .pointDetail {
     font-size: 12px;
     text-align: left;

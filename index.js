@@ -29,124 +29,50 @@ $(document).ready(function () {
 
 
 
-
-
-function processPoints() {
-
-    
-
-    let allLatLongs = cellPoints.slice(0,10).map(point => 
-        new google.maps.LatLng(point.Latitude, point.Longitude)
-    )
-
-    getDistanceAndTimeInfo(allLatLongs)
-
-    //     
-
-    //     for (let i = 0; i < cellPoints.length; i++) {
-
-    //         let day = cellPoints[i].Date.split("/")[1]
-    //         let month = Number(cellPoints[i].Date.split("/")[0]) - 1
-    //         let year = 20 + cellPoints[i].Date.split("/")[2]
-    //         let hours = cellPoints[i].Time.split(":")[0]
-    //         let minutes = cellPoints[i].Time.split(":")[1]
-    //         let seconds = cellPoints[i].Time.split(":")[2]
-
-    //         let date = new Date(year, month, day, hours, minutes, seconds)
-    //         cellPoints[i].dateTime = date
-
-    //         console.log(cellPoints[i].Latitude)
-
-    //         allCoordinates = allCoordinates + cellPoints[i].Latitude + ", " + cellPoints[i].Longitude
-
-    //         if (i < cellPoints.length - 1) {
-    //             allCoordinates = allCoordinates + " | "
-    //         }
-
-
-
-
-    //         // if (i > 0) {
-    //         //     let lastPoint = cellPoints[i - 1]
-    //         //     getDistanceAndTimeInfo(cellPoints[i], date, i, lastPoint, function (stuff) {
-
-    //         //         // console.log(i)
-
-    //         //         let timeDiff = (stuff[4] - timeDistanceresult[i - 1][4]) / 1000 / 60
-
-    //         //         console.log(timeDiff)
-    //         //         console.log(stuff[1])
-
-
-
-    //         //         timeDistanceresult.push(stuff)
-
-    //         //         if (i === cellPoints.length-1) {
-    //         //             plotPoints()
-    //         //         }
-    //         //     })
-    //         // } else {
-    //         //     timeDistanceresult.push(["na", "na", "na", "na", date])
-    //         // }
-
-
-    //         // let timeDiff = 0
-    //         // if (i > 0) {
-    //         //     // console.log(timeDistanceresult[i][4])
-    //         //     timeDiff = (timeDistanceresult[i][4]-timeDistanceresult[i-1][4]/1000)/60
-    //         // }
-    //         // console.log(timeDistanceresult[i-1])
-    //     }
-
-    //     console.log(allCoordinates)
-
-
-}
-
-function plotPoints() {
-    for (let i = 0; i < cellPoints.length; i++) {
-        // $("pointPlot").append("<div class = 'pointPlots'></div>");
+function gridPoints() {
+    let lastPoint
+    for (let i = 0; i < allPoints.length; i++) {
+        
+        if (i == 0) {lastPoint = allPoints[i]}
 
         var $newdiv1 = $("<div class='pointPlots' id='point" + i + "'></div>")
         $(".pointPlot").append($newdiv1);
 
 
-        var hms = cellPoints[i].Time; // your input string
-        var a = hms.split(':'); // split it at the colons
-        var minutes = (+a[0]) * 60 + (+a[1]) + (+a[2] / 60);
-
-        let totalRange = slider.max - slider.min
-        let leftPercent = ((minutes - slider.min) / totalRange - (rangePercent / 2)) * 100 - .5
-
-
-        $(`#point${i}`).css({
-            'left': `${Math.floor(leftPercent)}%`
-        })
-
-
         let card = document.createElement('div');
         card.classList.add('card');
 
-        card.innerHTML = createPointCard(cellPoints[i], i)
+        card.innerHTML = createPointCard(allPoints[i], i, lastPoint)
 
         $('#pointText').append(card);
-
-        // $(`#point${i}`).css({'top': `${550+i*2}px`})
+        lastPoint = allPoints[i]
     }
 
 }
 
 
-function createPointCard(point, index) {
+function createPointCard(point, index, lastPoint) {
+    var utcSeconds = point["gmtDateTime"];
+    var date = moment.unix(utcSeconds).format('dddd, MMMM Do, YYYY h:mm:ss A')
+    timeFromLast = (utcSeconds-lastPoint["gmtDateTime"])/60
+    console.log(timeFromLast.toFixed(2))
+    let flagged = ""
+    if (point["duration"]/60 > timeFromLast) {
+        flagged = "flagged"
+    }
 
-
-    let cardHTML = (`<button class="collapsed caret" type="button" data-toggle="collapse" data-target=${"#collapse" + (index + 1)} aria-expanded="false" aria-controls=${"collapse" + (index + 1)}>
+    let cardHTML = (`<button class="collapsed caret ${flagged}" type="button" data-toggle="collapse" data-target=${"#collapse" + (index + 1)} aria-expanded="false" aria-controls=${"collapse" + (index + 1)}>
                 <div class="card-header" id=${"point" + (index + 1)}>
                     <div class="header-name">
-                        <h3>${index + 1}) "${point.Address}"  (${point.Time})</h3>
+                        <h3>${index + 1}) ${point["locationText"]}</h3>
+                        <h3>${date}</h3>
                         <div id="content">
-                        <div id="bodyContent"> 
-                        <p class="pointDetail" >Longitude) ${point.Longitude}  Latitude) ${point.Latitude}</p>
+                        <div id="bodyContent">
+                        <ul>
+                        <li class="pointDetail" >Distance from last) ${point["distance"] * 0.00062137} miles</li>
+                        <li class="pointDetail" >Est. Travel) ${(point["duration"]/60).toFixed(2)} minutes</li>
+                        <li class="pointDetail" >Reported Time Between) ${timeFromLast.toFixed(2)} minutes</li>
+                        </ul>
                         </div> 
                         </div>
                     </div>
@@ -160,56 +86,6 @@ function createPointCard(point, index) {
 
 
 
-function getDistanceAndTimeInfo(allLatLongs, mycallback) {
-    let distanceService = new google.maps.DistanceMatrixService();
-
-    // let pickupLat = lastPoint.Latitude
-    // let pickupLng = lastPoint.Longitude
-    // let dropoffLat = point.Latitude
-    // let dropoffLng = point.Longitude
-    var d = $.Deferred();
-
-    DrivingOptions = {
-        departureTime: new Date(Date.now()),
-        trafficModel: 'optimistic'
-    }
-
-    distanceService.getDistanceMatrix({
-        origins: allLatLongs,
-        destinations: allLatLongs,
-        travelMode: 'DRIVING',
-        drivingOptions: DrivingOptions,
-        unitSystem: google.maps.UnitSystem.IMPERIAL
-    }, callback);
-
-
-    function callback(response, status) {
-        if (status == 'OK') {
-            // var origins = response.originAddresses;
-            // var destinations = response.destinationAddresses;
-            console.log(response)
-
-            for (var i = 0; i < response.length; i++) {
-                var results = response.rows[i].elements;
-
-                console.log(results)
-                // var element = results[j];
-                // var distance = element.distance.text;
-                // var duration = element.duration.text;
-                // var from = origins[i];
-                // var to = destinations[j];
-
-                // mycallback([distance, duration, from, to, date])
-                d.resolve(response);
-            }
-        } else {
-            d.reject(status);
-            console.log(status)
-        }
-    }
-    return d.promise();
-
-}
 
 
 function initMap() {
@@ -247,7 +123,9 @@ function initMap() {
 
 
     drawCircles();
-    processPoints()
+    gridPoints();
+
+    console.log(allPoints)
 
 }
 

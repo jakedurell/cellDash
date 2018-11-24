@@ -1,4 +1,4 @@
-[{
+let allPoints = [{
     "distance": 0,
     "gmtDateTime": 1495513355,
     "locationText": "444 Duffy Rd, Milton, VT 05468, USA",
