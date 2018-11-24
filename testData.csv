@@ -1,0 +1,21 @@
+Item,IMSI/PhoneNumber,ConnectionDate,ConnectionTime(GMT),Longitude,Latitude,LocationAccuracy
+423,8027773891,5/23/17,2:35:57,-73.080765,44.461233,Location accuracy likely better than 2500 meters
+424,8027773891,5/23/17,2:26:02,-73.108179,44.447427,Location accuracy likely better than 600 meters
+425,8027773891,5/23/17,2:25:01,-73.112004,44.441874,Location accuracy unknown
+426,8027773891,5/23/17,2:13:30,-73.127979,44.447679,Location accuracy likely better than 2500 meters
+427,8027773891,5/23/17,2:03:40,-73.146276,44.459766,Location accuracy unknown
+428,8027773891,5/23/17,2:02:20,-73.111941,44.458389,Location accuracy likely better than 2500 meters
+429,8027773891,5/23/17,1:59:34,-73.11825,44.487999,Location accuracy likely better than 5000 meters
+430,8027773891,5/23/17,1:57:34,-73.146276,44.459766,Location accuracy unknown
+431,8027773891,5/23/17,1:42:56,-73.184562,44.510868,Location accuracy likely better than 300 meters
+432,8027773891,5/23/17,1:42:46,-73.183932,44.508348,Location accuracy unknown
+433,8027773891,5/23/17,1:37:43,-73.20402,44.569971,Location accuracy likely better than 5000 meters
+434,8027773891,5/23/17,1:36:55,-73.135467,44.598915,Location accuracy unknown
+435,8027773891,5/23/17,1:29:41,-73.149219,44.617401,Location accuracy likely better than 1500 meters
+436,8027773891,5/23/17,1:29:12,-73.148121,44.63235,Location accuracy unknown
+437,8027773891,5/23/17,1:20:52,-73.130706,44.635185,Location accuracy likely better than 2500 meters
+438,8027773891,5/23/17,1:00:49,-73.141434,44.626275,Location accuracy likely better than 1500 meters
+439,8027773891,5/23/17,0:57:28,-73.139427,44.626338,Location accuracy likely better than 600 meters
+440,8027773891,5/23/17,0:41:13,-73.135827,44.629848,Location accuracy likely better than 1000 meters
+441,8027773891,5/23/17,0:31:20,-73.143783,44.624295,Location accuracy likely better than 1500 meters
+442,8027773891,5/23/17,0:22:35,-73.107693,44.578242,Location accuracy likely better than 2500 meters

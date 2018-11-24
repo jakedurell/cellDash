@@ -7,15 +7,101 @@ let range = 5
 let minLower = totalMin - range
 let minUpper = totalMin + range
 
-let rangePercent = (2*range) / (slider.max - slider.min)
+let rangePercent = (2 * range) / (slider.max - slider.min)
 var style = document.querySelector('[data="test"]');
-
-// $(".input[type=range]::-webkit-slider-thumb").css("width", (rangePercent * 100) + "%")
-
 
 output.innerHTML = "Between " + display(minLower) + " and " + display(minUpper);
 style.innerHTML = ".slider::-webkit-slider-thumb { width: " + (rangePercent * 100) + "%" + " !important; }";
-plotPoints()
+
+
+
+$(document).ready(function () {
+    var handlesSlider = document.getElementById('test5');
+
+    noUiSlider.create(handlesSlider, {
+        start: [4000, 8000],
+        range: {
+            'min': [2000],
+            'max': [10000]
+        }
+    });
+});
+
+
+
+
+
+function processPoints() {
+
+    
+
+    let allLatLongs = cellPoints.slice(0,10).map(point => 
+        new google.maps.LatLng(point.Latitude, point.Longitude)
+    )
+
+    getDistanceAndTimeInfo(allLatLongs)
+
+    //     
+
+    //     for (let i = 0; i < cellPoints.length; i++) {
+
+    //         let day = cellPoints[i].Date.split("/")[1]
+    //         let month = Number(cellPoints[i].Date.split("/")[0]) - 1
+    //         let year = 20 + cellPoints[i].Date.split("/")[2]
+    //         let hours = cellPoints[i].Time.split(":")[0]
+    //         let minutes = cellPoints[i].Time.split(":")[1]
+    //         let seconds = cellPoints[i].Time.split(":")[2]
+
+    //         let date = new Date(year, month, day, hours, minutes, seconds)
+    //         cellPoints[i].dateTime = date
+
+    //         console.log(cellPoints[i].Latitude)
+
+    //         allCoordinates = allCoordinates + cellPoints[i].Latitude + ", " + cellPoints[i].Longitude
+
+    //         if (i < cellPoints.length - 1) {
+    //             allCoordinates = allCoordinates + " | "
+    //         }
+
+
+
+
+    //         // if (i > 0) {
+    //         //     let lastPoint = cellPoints[i - 1]
+    //         //     getDistanceAndTimeInfo(cellPoints[i], date, i, lastPoint, function (stuff) {
+
+    //         //         // console.log(i)
+
+    //         //         let timeDiff = (stuff[4] - timeDistanceresult[i - 1][4]) / 1000 / 60
+
+    //         //         console.log(timeDiff)
+    //         //         console.log(stuff[1])
+
+
+
+    //         //         timeDistanceresult.push(stuff)
+
+    //         //         if (i === cellPoints.length-1) {
+    //         //             plotPoints()
+    //         //         }
+    //         //     })
+    //         // } else {
+    //         //     timeDistanceresult.push(["na", "na", "na", "na", date])
+    //         // }
+
+
+    //         // let timeDiff = 0
+    //         // if (i > 0) {
+    //         //     // console.log(timeDistanceresult[i][4])
+    //         //     timeDiff = (timeDistanceresult[i][4]-timeDistanceresult[i-1][4]/1000)/60
+    //         // }
+    //         // console.log(timeDistanceresult[i-1])
+    //     }
+
+    //     console.log(allCoordinates)
+
+
+}
 
 function plotPoints() {
     for (let i = 0; i < cellPoints.length; i++) {
@@ -30,22 +116,101 @@ function plotPoints() {
         var minutes = (+a[0]) * 60 + (+a[1]) + (+a[2] / 60);
 
         let totalRange = slider.max - slider.min
-        let leftPercent = ((minutes - slider.min)/totalRange-(rangePercent/2))*100-.5
+        let leftPercent = ((minutes - slider.min) / totalRange - (rangePercent / 2)) * 100 - .5
 
-        console.log(leftPercent)
 
-        $(`#point${i}`).css({'left': `${Math.floor(leftPercent)}%`})
+        $(`#point${i}`).css({
+            'left': `${Math.floor(leftPercent)}%`
+        })
+
+
+        let card = document.createElement('div');
+        card.classList.add('card');
+
+        card.innerHTML = createPointCard(cellPoints[i], i)
+
+        $('#pointText').append(card);
 
         // $(`#point${i}`).css({'top': `${550+i*2}px`})
     }
+
+}
+
+
+function createPointCard(point, index) {
+
+
+    let cardHTML = (`<button class="collapsed caret" type="button" data-toggle="collapse" data-target=${"#collapse" + (index + 1)} aria-expanded="false" aria-controls=${"collapse" + (index + 1)}>
+                <div class="card-header" id=${"point" + (index + 1)}>
+                    <div class="header-name">
+                        <h3>${index + 1}) "${point.Address}"  (${point.Time})</h3>
+                        <div id="content">
+                        <div id="bodyContent"> 
+                        <p class="pointDetail" >Longitude) ${point.Longitude}  Latitude) ${point.Latitude}</p>
+                        </div> 
+                        </div>
+                    </div>
+                <i class="fas fa-caret-left"></i>
+            </div>
+        </button>
+        `);
+
+    return cardHTML
 }
 
 
 
+function getDistanceAndTimeInfo(allLatLongs, mycallback) {
+    let distanceService = new google.maps.DistanceMatrixService();
+
+    // let pickupLat = lastPoint.Latitude
+    // let pickupLng = lastPoint.Longitude
+    // let dropoffLat = point.Latitude
+    // let dropoffLng = point.Longitude
+    var d = $.Deferred();
+
+    DrivingOptions = {
+        departureTime: new Date(Date.now()),
+        trafficModel: 'optimistic'
+    }
+
+    distanceService.getDistanceMatrix({
+        origins: allLatLongs,
+        destinations: allLatLongs,
+        travelMode: 'DRIVING',
+        drivingOptions: DrivingOptions,
+        unitSystem: google.maps.UnitSystem.IMPERIAL
+    }, callback);
 
 
+    function callback(response, status) {
+        if (status == 'OK') {
+            // var origins = response.originAddresses;
+            // var destinations = response.destinationAddresses;
+            console.log(response)
 
-console.log(document.body.clientWidth)
+            for (var i = 0; i < response.length; i++) {
+                var results = response.rows[i].elements;
+
+                console.log(results)
+                // var element = results[j];
+                // var distance = element.distance.text;
+                // var duration = element.duration.text;
+                // var from = origins[i];
+                // var to = destinations[j];
+
+                // mycallback([distance, duration, from, to, date])
+                d.resolve(response);
+            }
+        } else {
+            d.reject(status);
+            console.log(status)
+        }
+    }
+    return d.promise();
+
+}
+
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('cellLocationMap'), {
@@ -62,12 +227,27 @@ function initMap() {
             "lng": -73.120530
         },
         map: map,
+        // title: point.patientName,
+        // icon: icon,
+        zIndex: 101
+    });
+
+
+    var alibi = new google.maps.Marker({
+        position: {
+            "lat": 44.496710,
+            "lng": -73.125110
+        },
+        color: "blue",
+        map: map,
         // title: ride.patientName,
         // icon: icon,
         zIndex: 101
     });
 
+
     drawCircles();
+    processPoints()
 
 }
 

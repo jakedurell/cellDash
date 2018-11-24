@@ -36,8 +36,13 @@ body {
 }
 
 p {
-    font-size: 30px;
+    font-size: 20px;
     text-align: center;
+}
+
+.pointDetail {
+    font-size: 12px;
+    text-align: left;
 }
 
 .rangeInputs {
