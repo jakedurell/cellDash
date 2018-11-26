@@ -1,12 +1,13 @@
 var map;
 var circles = [];
+var circleMarkers = [];
 var slider = document.getElementById("myRange");
 var output = document.getElementById("demo");
 let totalMin = 1350
 let range = 5
 let minLower = totalMin - range
 let minUpper = totalMin + range
-
+var activeInfoWindow
 let rangePercent = (2 * range) / (slider.max - slider.min)
 var style = document.querySelector('[data="test"]');
 
@@ -27,44 +28,158 @@ $(document).ready(function () {
     });
 });
 
-
-
 function gridPoints() {
     let lastPoint
     for (let i = 0; i < allPoints.length; i++) {
-        
-        if (i == 0) {lastPoint = allPoints[i]}
+
+        if (i == 0) {
+            lastPoint = allPoints[i]
+        }
 
         var $newdiv1 = $("<div class='pointPlots' id='point" + i + "'></div>")
         $(".pointPlot").append($newdiv1);
 
-
         let card = document.createElement('div');
         card.classList.add('card');
 
+        //Create Text for each ride with Google API information from python code
         card.innerHTML = createPointCard(allPoints[i], i, lastPoint)
-
         $('#pointText').append(card);
+
+
         lastPoint = allPoints[i]
     }
 
+    chartPoints();
+
 }
 
+function chartPoints() {
 
-function createPointCard(point, index, lastPoint) {
-    var utcSeconds = point["gmtDateTime"];
-    var date = moment.unix(utcSeconds).format('dddd, MMMM Do, YYYY h:mm:ss A')
-    timeFromLast = (utcSeconds-lastPoint["gmtDateTime"])/60
-    console.log(timeFromLast.toFixed(2))
-    let flagged = ""
-    if (point["duration"]/60 > timeFromLast) {
-        flagged = "flagged"
+    let xAxis = []
+    let durationDiffs = []
+
+    let googleVelocities = []
+    let cellVelocities = []
+
+    for (let i = 1; i < allPoints.length; i++) {
+        moment.tz.setDefault("America/New_York");
+        var utcSeconds = allPoints[i]["gmtDateTime"];
+        var date = moment.unix(utcSeconds).format('HH:mm:ss')
+
+        var lastUtcSeconds = allPoints[i - 1]["gmtDateTime"];
+        var lastDate = moment.unix(lastUtcSeconds).format('MM/DD: HH:mm:ss')
+
+        timeFromLast = 0;
+
+        timeFromLast = (utcSeconds - allPoints[i - 1]["gmtDateTime"]) / 60;
+
+
+        var googleVelocity
+        var cellVelocity
+        if (allPoints[i]["distance"] == 0) {
+            googleVelocity = 0;
+            cellVelocity = 0;
+        } else {
+            googleVelocity = ((allPoints[i]["distance"] * 0.00062137) / (allPoints[i]["duration"] / 60 / 60)).toFixed(2)
+            cellVelocity = ((allPoints[i]["distance"] * 0.00062137) / (timeFromLast / 60)).toFixed(2)
+        }
+
+        googleVelocities.push(googleVelocity)
+        cellVelocities.push(cellVelocity)
+
+
+        xAxis.push(lastDate + " - " + date);
+        durationDiffs.push(((allPoints[i]["duration"] / 60) - timeFromLast).toFixed(2));
+
     }
 
-    let cardHTML = (`<button class="collapsed caret ${flagged}" type="button" data-toggle="collapse" data-target=${"#collapse" + (index + 1)} aria-expanded="false" aria-controls=${"collapse" + (index + 1)}>
-                <div class="card-header" id=${"point" + (index + 1)}>
+    new Chart(document.getElementById("line-chart"), {
+        type: 'line',
+        data: {
+            labels: xAxis,
+            datasets: [{
+                data: durationDiffs,
+                label: "Google estimated duration minus reported cell data duration.",
+                borderColor: "#3e95cd",
+                fill: true,
+                pointBackgroundColor: "#ff0000"
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Comparison of Times'
+            }
+        }
+    });
+    var myChart = new Chart(document.getElementById("line-chart2"), {
+        type: 'line',
+        data: {
+            labels: xAxis,
+            datasets: [{
+                data: cellVelocities,
+                label: "Implied cell velocities",
+                borderColor: "#3e95cd",
+                fill: true
+            }, {
+                data: googleVelocities,
+                label: "Google implied velocities",
+                borderColor: "#ff0000",
+                fill: false
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Comparison of Times'
+            },
+            responsive: true,
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        min: 0,
+                        max: 120,
+
+                    }
+                }]
+            }
+        }
+    });
+
+    document.getElementById("line-chart2").onclick = function (evt) {
+        var activePoints = myChart.getElementAtEvent(event);
+
+        // make sure click was on an actual point
+        if (activePoints.length > 0) {
+            var clickedDatasetIndex = activePoints[0]._datasetIndex;
+            var clickedElementindex = activePoints[0]._index;
+            var label = myChart.data.labels[clickedElementindex];
+            var value = myChart.data.datasets[clickedDatasetIndex] //.data[clickedElementindex];     
+            //   alert("Clicked: " + label + " - " + value);
+            console.log(clickedElementindex)
+        }
+    };
+}
+
+var numGreaterThan = 0
+
+function createPointCard(point, index, lastPoint) {
+    moment.tz.setDefault("America/New_York");
+    var utcSeconds = point["gmtDateTime"];
+    var date = moment.unix(utcSeconds).format('dddd, MMMM Do, YYYY h:mm:ss A')
+    timeFromLast = (utcSeconds - lastPoint["gmtDateTime"]) / 60
+
+    let flagged = ""
+    if (point["duration"] / 60 > timeFromLast) {
+        flagged = "flagged"
+        numGreaterThan++
+    }
+
+    let cardHTML = (`
+                <div class="card-header ${flagged}" id=${"point" + (index + 1)}>
                     <div class="header-name">
-                        <h3>${index + 1}) ${point["locationText"]}</h3>
+                        <h3>${index + 1}) ${point["locationText"]} (approximate location)</h3>
                         <h3>${date}</h3>
                         <div id="content">
                         <div id="bodyContent">
@@ -78,14 +193,10 @@ function createPointCard(point, index, lastPoint) {
                     </div>
                 <i class="fas fa-caret-left"></i>
             </div>
-        </button>
         `);
 
     return cardHTML
 }
-
-
-
 
 
 function initMap() {
@@ -125,8 +236,6 @@ function initMap() {
     drawCircles();
     gridPoints();
 
-    console.log(allPoints)
-
 }
 
 function drawCircles() {
@@ -136,9 +245,7 @@ function drawCircles() {
     for (let i = 0; i < cellPoints.length; i++) {
         // Add the circle for this city to the map.
 
-
         var nums = cellPoints[i].Accuracy.match(/\d+/g);
-
 
         if (!nums) {
             continue;
@@ -149,8 +256,6 @@ function drawCircles() {
 
         // Hours are worth 60 minutes.
         var minutes = (+a[0]) * 60 + (+a[1]) + (+a[2] / 60);
-
-        // console.log(minutes);
 
         if (minutes >= minLower && minutes <= minUpper) {
             color = 'green'
@@ -180,8 +285,79 @@ function drawCircles() {
 
         circles.push(cityCircle);
 
+        let adjustCoordinates = getOffset(cellPoints[i].Longitude, parseFloat(nums[0]), cellPoints[i].Latitude)
+        let adjLat = adjustCoordinates[0]
+        let adjLong = adjustCoordinates[1]
+
+        var icon = {
+            url: "circleMarker.png",
+            scaledSize: new google.maps.Size(22.5, 30),
+            // origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(11.25, 20), // anchor
+            labelOrigin: new google.maps.Point(12, 12)
+        };
+
+        var circleMarker = new google.maps.Marker({
+            position: {
+                "lat": adjLat,
+                "lng":  adjLong,
+            },
+            color: "blue",
+            label: {
+                text: i.toString(),
+                fontSize: "10px"
+            },
+            icon: icon,
+            map: map,
+            zIndex: 101
+        });
+
+        var infowindow = new google.maps.InfoWindow()
+
+        circleMarker.html = 
+        `<div class="infoWindow">
+            <b>Timestamp:</b> <span>${cellPoints[i]["Date"]} - ${cellPoints[i]["Time"]} <br>
+        </div>`
+
+        google.maps.event.addListener(circleMarker, "click", (function(circleMarker) {
+            return function(evt) {
+              infowindow.setContent(this.html);
+              infowindow.open(map, circleMarker);
+            }
+          })(circleMarker));
+
+
+        circleMarkers.push(circleMarker)
+
     }
 
+}
+
+function getOffset(lon, radius, lat) {
+     //Position, decimal degrees
+
+    // let dw = Math.sqrt(radius^2/2)
+    // let dn = dw
+
+    let dw = radius * Math.cos(45)
+    let dn = radius * Math.sin(45)
+
+ //Earth’s radius, sphere
+ let R=6378137
+
+ //Coordinate offsets in radians
+ let dLat = dn/R
+ let dLon = dw/(R*Math.cos(Math.PI*lat/180))
+ 
+ //OffsetPosition, decimal degrees
+ let latO = lat + dLat * 180/Math.PI
+ let lonO = lon - dLon * 180/Math.PI
+
+ let coords = []
+ coords.push(latO)
+ coords.push(lonO)
+
+ return coords
 }
 
 function removeAllcircles() {
@@ -189,6 +365,11 @@ function removeAllcircles() {
         circles[i].setMap(null);
     }
     circles = []; // this is if you really want to remove them, so you reset the variable.
+
+    for (var i in circleMarkers) {
+        circleMarkers[i].setMap(null);
+    }
+    circleMarkers = []; // this is if you really want to remove them, so you reset the variable.
 }
 
 // Update the current slider value (each time you drag the slider handle)

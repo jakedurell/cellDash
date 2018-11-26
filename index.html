@@ -32,6 +32,7 @@
 <br>
 <div id="test5" class="noUiSlider" style="height: 50px; width: 100%;"></div>
 
+
 <div class="slidecontainer">
     <style data="test" type="text/css"></style>
 
@@ -42,8 +43,19 @@
 </div>
 
 
+
+<div class="chartWrapper">
+    <div class="chartAreaWrapper">
+        <canvas id="line-chart" width="4000" height="200"></canvas>
+
+        <canvas id="line-chart2" height="200" width="4000"></canvas>
+    </div>
+</div>
+
+
+
 <div id="pointText">
-    
+
 </div>
 <!-- 
 <div class = "rangeInputs">
@@ -53,6 +65,8 @@
 </div> -->
 
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCG1ezWA98toSwUGbVGyBXTQF1RssMGgP4&callback=initMap"
     async defer></script>
@@ -60,6 +74,7 @@
 <!-- <script src="moment-with-locales.js"></script> -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+<script src="./node_modules/moment-timezone/moment-timezone.js"></script>
 <script src="cellPoints.js"></script>
 <script src="allPoints.js"></script>
 <script src="index.js"></script>
