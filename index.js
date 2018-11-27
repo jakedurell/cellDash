@@ -4,6 +4,13 @@ var circleMarkers = [];
 var slider = document.getElementById("myRange");
 var rangeText = document.getElementById("range");
 var rangeTextDesc = document.getElementById("rangeDesc");
+
+var minGMT = 1495520010;
+var maxGMT = 1495525346;
+
+$('#slider').prop('min', 10);
+$('#slider').prop('max', 100);
+
 let totalMin = 1350
 let range = 5
 let minLower = totalMin - range
@@ -68,15 +75,15 @@ function chartPoints() {
         timezone = "America/New_York";
         format = "dddd, MMMM D YYYY, h:mm:ss a";
     
-        let dateParts = allPoints[i]["estDate"].split("/")
+        let dateParts = allPoints[i]["gmtDate"].split("/")
         let dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
     
-        var date = formatTime(new Date(dateString + " " + allPoints[i]["estTime"] + " UTC"))
+        var date = formatTime(new Date(dateString + " " + allPoints[i]["gmtTime"] + " UTC"))
 
-        dateParts = allPoints[i-1]["estDate"].split("/")
+        dateParts = allPoints[i-1]["gmtDate"].split("/")
         dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
     
-        var lastDate = formatTime(new Date(dateString + " " + allPoints[i-1]["estTime"] + " UTC"))
+        var lastDate = formatTime(new Date(dateString + " " + allPoints[i-1]["gmtTime"] + " UTC"))
 
 
 
@@ -231,6 +238,19 @@ var mph100to150 = 0
 var mph150AndOver = 0
 var otherOver = 0
 
+function gmtDateFromUTC(strDate, strTime){
+    moment.tz.setDefault("America/New_York");
+    timezone = "America/New_York";
+    format = "dddd, MMMM D YYYY, h:mm:ss a";
+
+    let dateParts = strDate.split("/")
+    let dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
+
+    var date = new Date(dateString + " " + strTime + " UTC")
+
+    return date
+}
+
 function createPointRow(point, index, lastPoint) {
     // moment.tz.setDefault("America/New_York");
     var utcSeconds = point["gmtDateTime"];
@@ -243,15 +263,15 @@ function createPointRow(point, index, lastPoint) {
     timezone = "America/New_York";
     format = "dddd, MMMM D YYYY, h:mm:ss a";
 
-    let dateParts = point["estDate"].split("/")
+    let dateParts = point["gmtDate"].split("/")
     let dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
 
-    var date = new Date(dateString + " " + point["estTime"] + " UTC")
+    var date = new Date(dateString + " " + point["gmtTime"] + " UTC")
 
-    dateParts = lastPoint["estDate"].split("/")
+    dateParts = lastPoint["gmtDate"].split("/")
     dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
 
-    var dateLast = new Date(dateString + " " + lastPoint["estTime"] + " UTC")
+    var dateLast = new Date(dateString + " " + lastPoint["gmtTime"] + " UTC")
 
     let flagged = ""
     
@@ -332,166 +352,7 @@ function initMap() {
 
 }
 
-function drawCircles() {
 
-    let color = '#FF0000'
-    let count = 1
-
-    var mapPoints = allPoints.filter(function (el) {
-        return el.gmtDateTime >= 1495520010 &&
-            el.gmtDateTime <= 1495525346;
-    });
-
-
-    for (let i = 0; i < cellPoints.length; i++) {
-        count++
-        var nums = []
-        nums = cellPoints[i].Accuracy.match(/\d+/g);
-
-        if (!nums) {
-            nums = 3000;
-        }
-
-        var hms = cellPoints[i].Time; // your input string
-        var a = hms.split(':'); // split it at the colons
-
-        // Hours are worth 60 minutes.
-        var minutes = (+a[0]) * 60 + (+a[1]) + (+a[2] / 60);
-
-        if (minutes >= minLower && minutes <= minUpper) {
-            color = 'green'
-        } else if (minutes > minUpper) {
-            color = 'blue'
-        } else {
-            color = 'red'
-            continue;
-        }
-
-        if (i === 19) {
-            continue;
-        }
-
-        var cityCircle = new google.maps.Circle({
-            strokeColor: color,
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            fillColor: color,
-            fillOpacity: 0.1,
-            map: map,
-            center: {
-                lat: cellPoints[i].Latitude,
-                lng: cellPoints[i].Longitude
-            },
-            radius: parseFloat(nums)
-        });
-
-
-        circles.push(cityCircle);
-
-        let adjustCoordinates = getOffset(cellPoints[i].Longitude, parseFloat(nums), cellPoints[i].Latitude)
-        let adjLat = adjustCoordinates[0]
-        let adjLong = adjustCoordinates[1]
-
-        let markerURL = ""
-        if (color == 'green') {
-            markerURL = "circleMarkerGreen.png"
-        } else {
-            markerURL = "circleMarker.png"
-        }
-
-        var icon = {
-            url: markerURL,
-            scaledSize: new google.maps.Size(22.5, 30),
-            // origin: new google.maps.Point(0, 0),
-            anchor: new google.maps.Point(11.25, 20), // anchor
-            labelOrigin: new google.maps.Point(12, 12)
-        };
-
-
-
-        var circleMarker = new google.maps.Marker({
-            position: {
-                "lat": adjLat,
-                "lng": adjLong,
-            },
-            color: "blue",
-            label: {
-                text: (i + 1).toString(),
-                fontSize: "10px"
-            },
-            icon: icon,
-            map: map,
-            zIndex: 101
-        });
-
-        var infowindow = new google.maps.InfoWindow()
-        circleMarker.html =
-            `<div class="infoWindow">
-        <b>Timestamp:</b> <span>${cellPoints[i]["Date"]} - ${cellPoints[i]["Time"]} <br>
-        </div>`
-
-        google.maps.event.addListener(circleMarker, "click", (function (circleMarker) {
-            return function (evt) {
-                infowindow.setContent(this.html);
-                infowindow.open(map, circleMarker);
-            }
-        })(circleMarker));
-
-
-        circleMarkers.push(circleMarker)
-
-    }
-
-}
-
-var allLabelCoords = []
-
-function getOffset(lon, radius, lat) {
-    //Position, decimal degrees
-
-    // let dw = Math.sqrt(radius^2/2)
-    // let dn = dw
-
-    let dw = radius * Math.cos(45)
-    let dn = radius * Math.sin(45)
-
-    //Earth’s radius, sphere
-    let R = 6378137
-
-    //Coordinate offsets in radians
-    let dLat = dn / R
-    let dLon = dw / (R * Math.cos(Math.PI * lat / 180))
-
-    //OffsetPosition, decimal degrees
-    let latO = lat + dLat * 180 / Math.PI
-    let lonO = lon - dLon * 180 / Math.PI
-
-    let coords = []
-    coords.push(latO)
-    coords.push(lonO)
-
-    for (i = 0; i < allLabelCoords.length; i++) {
-        if (coords[0] == allLabelCoords[i][0] && coords[1] == allLabelCoords[i][1]) {
-            coords[1] = coords[1] + .001
-        }
-    }
-
-    allLabelCoords.push(coords)
-    return coords
-}
-
-function removeAllcircles() {
-    for (var i in circles) {
-        circles[i].setMap(null);
-    }
-    circles = []; // this is if you really want to remove them, so you reset the variable.
-
-    for (var i in circleMarkers) {
-        circleMarkers[i].setMap(null);
-    }
-    circleMarkers = []; // this is if you really want to remove them, so you reset the variable.
-    allLabelCoords = []
-}
 
 // Update the current slider value (each time you drag the slider handle)
 slider.oninput = function () {

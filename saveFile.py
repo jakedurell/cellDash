@@ -34,8 +34,8 @@ with open('testData.csv', mode = 'r') as csvfile:
                 "longitude": float(line["Longitude"]),
                 "latitude": float(line["Latitude"]),
                 "accuracy": accuracy,
-                "estDate": line["ConnectionDate"],
-                "estTime": line["ConnectionTime(GMT)"],
+                "gmtDate": line["ConnectionDate"],
+                "gmtTime": line["ConnectionTime(GMT)"],
             }
 
             line_count += 1
