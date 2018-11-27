@@ -9,6 +9,7 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
+    text-align: center;
 }
 .chartWrapper {
     position: relative;
@@ -28,6 +29,13 @@ body {
 
 .slidecontainer {
     width: 100%; /* Width of the outside container */
+    display: flex;
+    flex-direction: column;
+}
+
+#myRange {
+    width: 90%; /* Width of the slider in slidercontainer */
+    align-self: center;
 }
 
 

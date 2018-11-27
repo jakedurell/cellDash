@@ -33,7 +33,9 @@ with open('testData.csv', mode = 'r') as csvfile:
                 "gmtDateTime": int(date_time_obj.strftime('%s')),
                 "longitude": float(line["Longitude"]),
                 "latitude": float(line["Latitude"]),
-                "accuracy": accuracy
+                "accuracy": accuracy,
+                "estDate": line["ConnectionDate"],
+                "estTime": line["ConnectionTime(GMT)"],
             }
 
             line_count += 1

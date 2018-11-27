@@ -2,7 +2,8 @@ var map;
 var circles = [];
 var circleMarkers = [];
 var slider = document.getElementById("myRange");
-var output = document.getElementById("demo");
+var rangeText = document.getElementById("range");
+var rangeTextDesc = document.getElementById("rangeDesc");
 let totalMin = 1350
 let range = 5
 let minLower = totalMin - range
@@ -11,7 +12,8 @@ var activeInfoWindow
 let rangePercent = (2 * range) / (slider.max - slider.min)
 var style = document.querySelector('[data="test"]');
 
-output.innerHTML = "Between " + display(minLower) + " and " + display(minUpper);
+rangeText.innerHTML = "Between " + display(minLower) + " and " + display(minUpper);
+rangeTextDesc.innerHTML = `(Points in this ${range*2} minute range are marked in green)`;
 style.innerHTML = ".slider::-webkit-slider-thumb { width: " + (rangePercent * 100) + "%" + " !important; }";
 
 
@@ -28,51 +30,59 @@ $(document).ready(function () {
     });
 });
 
-function gridPoints() {
-    let lastPoint
-    for (let i = 0; i < allPoints.length; i++) {
-
-        if (i == 0) {
-            lastPoint = allPoints[i]
-        }
-
-        var $newdiv1 = $("<div class='pointPlots' id='point" + i + "'></div>")
-        $(".pointPlot").append($newdiv1);
-
-        let card = document.createElement('div');
-        card.classList.add('card');
-
-        //Create Text for each ride with Google API information from python code
-        card.innerHTML = createPointCard(allPoints[i], i, lastPoint)
-        $('#pointText').append(card);
 
 
-        lastPoint = allPoints[i]
-    }
+var $table = $(`<table id="allDataTable" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Start Date/Time</th>
+                            <th>End Time</th>
+                            <th>Driving Distance<br><small>(Google est.)</small></th>
+                            <th>Duration<br><small>(Based on reported NELOS times.)</small></th>
+                            <th>Implied Speed (mph)</th>
+                            <th>Approximate Ending Location<br><small>(Based on google geocoding. Not exact location. Provides nearest known place.)</small></th>                
+                        </tr>
+                    </thead>
+                </table>`).appendTo('#myTable');
 
-    chartPoints();
+var $tbody = $('<tbody></tbody>').appendTo($table);
 
-}
+
 
 function chartPoints() {
 
     let xAxis = []
     let durationDiffs = []
+    let diffColor = []
 
     let googleVelocities = []
     let cellVelocities = []
 
     for (let i = 1; i < allPoints.length; i++) {
-        moment.tz.setDefault("America/New_York");
+        
         var utcSeconds = allPoints[i]["gmtDateTime"];
-        var date = moment.unix(utcSeconds).format('HH:mm:ss')
-
         var lastUtcSeconds = allPoints[i - 1]["gmtDateTime"];
-        var lastDate = moment.unix(lastUtcSeconds).format('MM/DD: HH:mm:ss')
+        
+        moment.tz.setDefault("America/New_York");
+        timezone = "America/New_York";
+        format = "dddd, MMMM D YYYY, h:mm:ss a";
+    
+        let dateParts = allPoints[i]["estDate"].split("/")
+        let dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
+    
+        var date = formatTime(new Date(dateString + " " + allPoints[i]["estTime"] + " UTC"))
+
+        dateParts = allPoints[i-1]["estDate"].split("/")
+        dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
+    
+        var lastDate = formatTime(new Date(dateString + " " + allPoints[i-1]["estTime"] + " UTC"))
+
+
 
         timeFromLast = 0;
 
-        timeFromLast = (utcSeconds - allPoints[i - 1]["gmtDateTime"]) / 60;
+        timeFromLast = (utcSeconds - lastUtcSeconds) / 60;
 
 
         var googleVelocity
@@ -90,8 +100,15 @@ function chartPoints() {
 
 
         xAxis.push(lastDate + " - " + date);
-        durationDiffs.push(((allPoints[i]["duration"] / 60) - timeFromLast).toFixed(2));
+        let durationDiff = ((allPoints[i]["duration"] / 60) - timeFromLast).toFixed(2)
+        durationDiffs.push(durationDiff);
 
+
+        if (durationDiff > 0) {
+            diffColor.push("#ff0000")
+        } else {
+            diffColor.push("#0000ff")
+        }
     }
 
     new Chart(document.getElementById("line-chart"), {
@@ -103,13 +120,28 @@ function chartPoints() {
                 label: "Google estimated duration minus reported cell data duration.",
                 borderColor: "#3e95cd",
                 fill: true,
-                pointBackgroundColor: "#ff0000"
+                pointBackgroundColor: diffColor
             }]
         },
         options: {
             title: {
                 display: true,
                 text: 'Comparison of Times'
+            },
+            responsive: true,
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        min: -20,
+                        max: 20,
+
+                    }
+                }],
+                    xAxes: [{
+                        ticks: {
+                            display: false //this will remove only the label
+                        }
+                    }]
             }
         }
     });
@@ -160,42 +192,104 @@ function chartPoints() {
             console.log(clickedElementindex)
         }
     };
+
+
+}
+
+
+function gridPoints() {
+    let lastPoint
+    for (let i = 0; i < allPoints.length; i++) {
+
+        if (i == 0) {
+            lastPoint = allPoints[i]
+            continue;
+        }
+
+        createPointRow(allPoints[i], i, lastPoint)
+
+        lastPoint = allPoints[i]
+    }
+    // $(document).ready(function () {
+    //     $('#allDataTable').DataTable();
+    // });
+    chartPoints();
+
+
+    console.log({mph66to99})
+    console.log({mph100to150})
+    console.log({mph150AndOver})
+    console.log({otherOver})
+
+
 }
 
 var numGreaterThan = 0
 
-function createPointCard(point, index, lastPoint) {
-    moment.tz.setDefault("America/New_York");
+var mph66to99 = 0
+var mph100to150 = 0
+var mph150AndOver = 0
+var otherOver = 0
+
+function createPointRow(point, index, lastPoint) {
+    // moment.tz.setDefault("America/New_York");
     var utcSeconds = point["gmtDateTime"];
-    var date = moment.unix(utcSeconds).format('dddd, MMMM Do, YYYY h:mm:ss A')
-    timeFromLast = (utcSeconds - lastPoint["gmtDateTime"]) / 60
+    var utcSecondsLast = lastPoint["gmtDateTime"];
+
+    // var date = new Date(moment.unix(utcSeconds))
+    timeFromLast = (utcSeconds - utcSecondsLast) / 60
+
+    moment.tz.setDefault("America/New_York");
+    timezone = "America/New_York";
+    format = "dddd, MMMM D YYYY, h:mm:ss a";
+
+    let dateParts = point["estDate"].split("/")
+    let dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
+
+    var date = new Date(dateString + " " + point["estTime"] + " UTC")
+
+    dateParts = lastPoint["estDate"].split("/")
+    dateString = "20" + dateParts[2] + "-" + dateParts[0] + "-" + dateParts[1]
+
+    var dateLast = new Date(dateString + " " + lastPoint["estTime"] + " UTC")
 
     let flagged = ""
+    
+    var miles = (point["distance"] * 0.00062137)
+    var $tbody = $('<tbody></tbody>').appendTo($table);
+    
+    var mph = (miles / (timeFromLast / 60)).toFixed(2)
+
+    warningIcon = ""
     if (point["duration"] / 60 > timeFromLast) {
         flagged = "flagged"
-        numGreaterThan++
+        warningIcon = "<i class='fas fa-exclamation-triangle'></i>"
+
+
+
+
+        if (mph > 65 && mph < 100 ) {
+            mph66to99++
+        } else if (mph >= 100 && mph < 150 ) {
+            mph100to150++
+        } else if (mph > 150) {
+            mph150AndOver++
+        } else {
+            otherOver++
+        }
+
     }
 
-    let cardHTML = (`
-                <div class="card-header ${flagged}" id=${"point" + (index + 1)}>
-                    <div class="header-name">
-                        <h3>${index + 1}) ${point["locationText"]} (approximate location)</h3>
-                        <h3>${date}</h3>
-                        <div id="content">
-                        <div id="bodyContent">
-                        <ul>
-                        <li class="pointDetail" >Distance from last) ${point["distance"] * 0.00062137} miles</li>
-                        <li class="pointDetail" >Est. Travel) ${(point["duration"]/60).toFixed(2)} minutes</li>
-                        <li class="pointDetail" >Reported Time Between) ${timeFromLast.toFixed(2)} minutes</li>
-                        </ul>
-                        </div> 
-                        </div>
-                    </div>
-                <i class="fas fa-caret-left"></i>
-            </div>
-        `);
 
-    return cardHTML
+    var $tr = $(`<tr class = ${flagged}>`).appendTo($tbody);
+    $('<td>').text(index).appendTo($tr);
+    $('<td>').text(formatDate(dateLast)).appendTo($tr);
+    $('<td>').text(formatTime(date)).appendTo($tr);
+    $('<td>').text(miles.toFixed(2) + " miles").appendTo($tr);
+    $('<td>').text(timeFromLast.toFixed(2) + " min").appendTo($tr);
+    $('<td>').html(mph + " " + warningIcon).appendTo($tr);
+    $('<td>').text(point["locationText"]).appendTo($tr);
+
 }
 
 
@@ -241,14 +335,21 @@ function initMap() {
 function drawCircles() {
 
     let color = '#FF0000'
+    let count = 1
+
+    var mapPoints = allPoints.filter(function (el) {
+        return el.gmtDateTime >= 1495520010 &&
+            el.gmtDateTime <= 1495525346;
+    });
+
 
     for (let i = 0; i < cellPoints.length; i++) {
-        // Add the circle for this city to the map.
-
-        var nums = cellPoints[i].Accuracy.match(/\d+/g);
+        count++
+        var nums = []
+        nums = cellPoints[i].Accuracy.match(/\d+/g);
 
         if (!nums) {
-            continue;
+            nums = 3000;
         }
 
         var hms = cellPoints[i].Time; // your input string
@@ -266,8 +367,9 @@ function drawCircles() {
             continue;
         }
 
-        // var m = moment(new Date());
-
+        if (i === 19) {
+            continue;
+        }
 
         var cityCircle = new google.maps.Circle({
             strokeColor: color,
@@ -280,31 +382,41 @@ function drawCircles() {
                 lat: cellPoints[i].Latitude,
                 lng: cellPoints[i].Longitude
             },
-            radius: parseFloat(nums[0])
+            radius: parseFloat(nums)
         });
+
 
         circles.push(cityCircle);
 
-        let adjustCoordinates = getOffset(cellPoints[i].Longitude, parseFloat(nums[0]), cellPoints[i].Latitude)
+        let adjustCoordinates = getOffset(cellPoints[i].Longitude, parseFloat(nums), cellPoints[i].Latitude)
         let adjLat = adjustCoordinates[0]
         let adjLong = adjustCoordinates[1]
 
+        let markerURL = ""
+        if (color == 'green') {
+            markerURL = "circleMarkerGreen.png"
+        } else {
+            markerURL = "circleMarker.png"
+        }
+
         var icon = {
-            url: "circleMarker.png",
+            url: markerURL,
             scaledSize: new google.maps.Size(22.5, 30),
             // origin: new google.maps.Point(0, 0),
             anchor: new google.maps.Point(11.25, 20), // anchor
             labelOrigin: new google.maps.Point(12, 12)
         };
 
+
+
         var circleMarker = new google.maps.Marker({
             position: {
                 "lat": adjLat,
-                "lng":  adjLong,
+                "lng": adjLong,
             },
             color: "blue",
             label: {
-                text: i.toString(),
+                text: (i + 1).toString(),
                 fontSize: "10px"
             },
             icon: icon,
@@ -313,18 +425,17 @@ function drawCircles() {
         });
 
         var infowindow = new google.maps.InfoWindow()
-
-        circleMarker.html = 
-        `<div class="infoWindow">
-            <b>Timestamp:</b> <span>${cellPoints[i]["Date"]} - ${cellPoints[i]["Time"]} <br>
+        circleMarker.html =
+            `<div class="infoWindow">
+        <b>Timestamp:</b> <span>${cellPoints[i]["Date"]} - ${cellPoints[i]["Time"]} <br>
         </div>`
 
-        google.maps.event.addListener(circleMarker, "click", (function(circleMarker) {
-            return function(evt) {
-              infowindow.setContent(this.html);
-              infowindow.open(map, circleMarker);
+        google.maps.event.addListener(circleMarker, "click", (function (circleMarker) {
+            return function (evt) {
+                infowindow.setContent(this.html);
+                infowindow.open(map, circleMarker);
             }
-          })(circleMarker));
+        })(circleMarker));
 
 
         circleMarkers.push(circleMarker)
@@ -333,8 +444,10 @@ function drawCircles() {
 
 }
 
+var allLabelCoords = []
+
 function getOffset(lon, radius, lat) {
-     //Position, decimal degrees
+    //Position, decimal degrees
 
     // let dw = Math.sqrt(radius^2/2)
     // let dn = dw
@@ -342,22 +455,29 @@ function getOffset(lon, radius, lat) {
     let dw = radius * Math.cos(45)
     let dn = radius * Math.sin(45)
 
- //Earth’s radius, sphere
- let R=6378137
+    //Earth’s radius, sphere
+    let R = 6378137
 
- //Coordinate offsets in radians
- let dLat = dn/R
- let dLon = dw/(R*Math.cos(Math.PI*lat/180))
- 
- //OffsetPosition, decimal degrees
- let latO = lat + dLat * 180/Math.PI
- let lonO = lon - dLon * 180/Math.PI
+    //Coordinate offsets in radians
+    let dLat = dn / R
+    let dLon = dw / (R * Math.cos(Math.PI * lat / 180))
 
- let coords = []
- coords.push(latO)
- coords.push(lonO)
+    //OffsetPosition, decimal degrees
+    let latO = lat + dLat * 180 / Math.PI
+    let lonO = lon - dLon * 180 / Math.PI
 
- return coords
+    let coords = []
+    coords.push(latO)
+    coords.push(lonO)
+
+    for (i = 0; i < allLabelCoords.length; i++) {
+        if (coords[0] == allLabelCoords[i][0] && coords[1] == allLabelCoords[i][1]) {
+            coords[1] = coords[1] + .001
+        }
+    }
+
+    allLabelCoords.push(coords)
+    return coords
 }
 
 function removeAllcircles() {
@@ -370,6 +490,7 @@ function removeAllcircles() {
         circleMarkers[i].setMap(null);
     }
     circleMarkers = []; // this is if you really want to remove them, so you reset the variable.
+    allLabelCoords = []
 }
 
 // Update the current slider value (each time you drag the slider handle)
@@ -377,7 +498,7 @@ slider.oninput = function () {
     totalMin = Number(this.value)
     minLower = totalMin - range
     minUpper = totalMin + range
-    output.innerHTML = "Between " + display(minLower) + " and " + display(minUpper);
+    rangeText.innerHTML = "Between " + display(minLower) + " and " + display(minUpper);
     removeAllcircles()
     drawCircles();
 }
@@ -400,3 +521,22 @@ function pad(num, size) {
     while (s.length < size) s = "0" + s;
     return s;
 }
+
+
+function formatDate(date) {
+    var strTime = formatTime(date)
+    return date.getMonth()+1 + "/" + date.getDate() + "/" + date.getFullYear() + "  " + strTime;
+  }
+
+  function formatTime(date) {
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
+    var ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0'+minutes : minutes;
+    seconds = seconds < 10 ? '0'+seconds : seconds;
+    var strTime = hours + ':' + minutes + ':' + seconds + ' ' + ampm;
+    return strTime;
+  }
