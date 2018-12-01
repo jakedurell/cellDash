@@ -4,10 +4,26 @@ function drawCircles() {
 
     let color = '#FF0000'
     let count = 1
+    let allPIndex = []
+    mapPoints = []
 
-    var mapPoints = allPoints.filter(function (el) {
-        return el.gmtDateTime >= 1495520010 &&
-            el.gmtDateTime <= 1495525346;
+    allPoints.filter(function (el, index) {
+        
+        let pointDateTime = Math.round((gmtDateFromUTC(el.gmtDate, el.gmtTime)).getTime() / 1000)
+
+        if (pointDateTime >= minGMT &&
+            pointDateTime <= maxGMT) {
+                
+        
+                mapPoints.push(el)
+
+            allPIndex.push(index)
+        }
+
+
+
+        return pointDateTime >= minGMT &&
+            pointDateTime <= maxGMT;
     });
 
 
@@ -15,16 +31,20 @@ function drawCircles() {
         count++
         var nums = []
         nums = mapPoints[i]["accuracy"];
-
-        if (nums<0) {
-            nums = 3000;
+        accuracyString = ""
+        if (nums < 0) {
+            nums = 150;
+            accuracyString = "unknown"
+        } else
+        {
+            accuracyString = nums + "meters"
         }
 
         let circleDate = mapPoints[i]["gmtDate"]
         let circleTime = mapPoints[i]["gmtTime"]
-        
-        let estDateTime = gmtDateFromUTC (circleDate, circleTime)
 
+        let estDateTime = gmtDateFromUTC(circleDate, circleTime)
+        
         let circleDateStr = formatDate(estDateTime)
         let circleTimeStr = formatTime(estDateTime)
 
@@ -35,14 +55,16 @@ function drawCircles() {
 
         var minutes = (+a[0] * 60) + (+a[1]) + ((+a[2]) / 60);
 
-        console.log({circleTimeStr})
-        console.log({a})
-        console.log({minutes})
 
-        if (minutes >= minLower && minutes <= minUpper) {
+        unixTime = Math.round((new Date(estDateTime)).getTime() / 1000)
+
+
+
+        if (unixTime >= minLower && unixTime <= minUpper) {
             color = 'green'
-        } else if (minutes > minUpper) {
+        } else if (unixTime > minUpper) {
             color = 'blue'
+            continue;
         } else {
             color = 'red'
             continue;
@@ -98,7 +120,7 @@ function drawCircles() {
             },
             color: "blue",
             label: {
-                text: (i + 1).toString(),
+                text: mapPoints[i]["item"].toString(),
                 fontSize: "10px"
             },
             icon: icon,
@@ -109,7 +131,8 @@ function drawCircles() {
         var infowindow = new google.maps.InfoWindow()
         circleMarker.html =
             `<div class="infoWindow">
-        <b>Timestamp:</b> <span>${circleDateStr}<br>
+        <b>Timestamp:</b> <span>${circleDateStr}</span><br>
+        <b>Accuracy:</b> <span>${accuracyString}</span><br>
         </div>`
 
         google.maps.event.addListener(circleMarker, "click", (function (circleMarker) {
@@ -119,6 +142,28 @@ function drawCircles() {
             }
         })(circleMarker));
 
+        markerURL = "compass.png"
+
+        var icon = {
+            url: markerURL,
+            scaledSize: new google.maps.Size(12, 12),
+            // origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(6, 6), // anchor
+        };
+
+
+        var centerMarker = new google.maps.Marker({
+            position: {
+                "lat": mapPoints[i]["latitude"],
+                "lng": mapPoints[i]["longitude"],
+            },
+            color: "blue",
+            icon: icon,
+            map: map,
+            zIndex: 101
+        });
+
+        centerMarkers.push(centerMarker)
 
         circleMarkers.push(circleMarker)
 
@@ -169,6 +214,11 @@ function removeAllcircles() {
     for (var i in circleMarkers) {
         circleMarkers[i].setMap(null);
     }
+
+    for (var i in centerMarkers) {
+        centerMarkers[i].setMap(null);
+    }
+    centerMarkers = []
     circleMarkers = []; // this is if you really want to remove them, so you reset the variable.
     allLabelCoords = []
 }
@@ -177,8 +227,8 @@ function formatTime24(date) {
     var hours = date.getHours();
     var minutes = date.getMinutes();
     var seconds = date.getSeconds();
-    minutes = minutes < 10 ? '0'+minutes : minutes;
-    seconds = seconds < 10 ? '0'+seconds : seconds;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    seconds = seconds < 10 ? '0' + seconds : seconds;
     var strTime = hours + ':' + minutes + ':' + seconds;
     return strTime;
-  }
+}

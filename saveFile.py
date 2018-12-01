@@ -11,6 +11,7 @@ from datetime import datetime
 import re
 import datetime
 import json
+import sys
 
 gmaps = googlemaps.Client(key='AIzaSyCG1ezWA98toSwUGbVGyBXTQF1RssMGgP4')
 arrayList = []
@@ -20,27 +21,25 @@ with open('testData.csv', mode = 'r') as csvfile:
     line_count = 0
 
     for line in reader:
-        if line_count == 0:
-            columns = ", ".join(line)
-            line_count += 1
-        else:
-            dateArray = line["ConnectionDate"].split('/')
-            date_time_str = "20"+dateArray[2]+'-'+dateArray[0]+'-'+dateArray[1] + " " + line["ConnectionTime(GMT)"]
-            date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
-            accurStr = filter(str.isdigit, line["LocationAccuracy"])
-            accuracy = -1 if accurStr == "" else float(accurStr)
-            pointAttributes =	{
-                "gmtDateTime": int(date_time_obj.strftime('%s')),
-                "longitude": float(line["Longitude"]),
-                "latitude": float(line["Latitude"]),
-                "accuracy": accuracy,
-                "gmtDate": line["ConnectionDate"],
-                "gmtTime": line["ConnectionTime(GMT)"],
-            }
+        dateArray = line["ConnectionDate"].split('/')
+        date_time_str = "20"+dateArray[2]+'-'+dateArray[0]+'-'+dateArray[1] + " " + line["ConnectionTime(GMT)"]
+        date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
+        accurStr = filter(str.isdigit, line["LocationAccuracy"])
+        accuracy = -1 if accurStr == "" else float(accurStr)
+        pointAttributes =	{
+            "item": int(line["Item"]),
+            "gmtDateTime": int(date_time_obj.strftime('%s')),
+            "longitude": float(line["Longitude"]),
+            "latitude": float(line["Latitude"]),
+            "accuracy": accuracy,
+            "gmtDate": line["ConnectionDate"],
+            "gmtTime": line["ConnectionTime(GMT)"],
+        }
 
-            line_count += 1
-            arrayList.append(pointAttributes)
-
+        line_count += 1
+        arrayList.append(pointAttributes)
+        # print line
+        # sys.exit()
     arrayList.sort(key=lambda item:item['gmtDateTime'], reverse=False)
     # print arrayList
     line_count = 0

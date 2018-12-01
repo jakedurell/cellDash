@@ -1,4 +1,4 @@
-      Item,IMSI/PhoneNumber,ConnectionDate,ConnectionTime(GMT),Longitude,Latitude,LocationAccuracy
+Item,IMSI/PhoneNumber,ConnectionDate,ConnectionTime(GMT),Longitude,Latitude,LocationAccuracy
 1,8027773891,5/24/17,3:53:47,-73.140786,44.511984,Location accuracy likely better than 1000 meters
 2,8027773891,5/24/17,3:43:41,-73.117692,44.517861,Location accuracy likely better than 2500 meters
 3,8027773891,5/24/17,3:39:27,-73.149741,44.509518,Location accuracy likely better than 1500 meters
