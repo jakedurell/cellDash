@@ -6,9 +6,6 @@ var slider = document.getElementById("myRange");
 var rangeText = document.getElementById("range");
 var rangeTextDesc = document.getElementById("rangeDesc");
 
-// var minGMT = 1495494233;
-// var maxGMT = 1495535362;
-
 var minDate = "2017.05.22"
 var minTime = "22:00:00"
 var maxDate = "2017.05.23"
