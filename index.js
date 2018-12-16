@@ -1,7 +1,7 @@
 var map;
-var circles = [];
-var circleMarkers = [];
-var centerMarkers = [];
+
+
+
 var slider = document.getElementById("myRange");
 var rangeText = document.getElementById("range");
 var rangeTextDesc = document.getElementById("rangeDesc");
@@ -9,7 +9,7 @@ var rangeTextDesc = document.getElementById("rangeDesc");
 var minDate = "2017.05.22"
 var minTime = "22:00:00"
 var maxDate = "2017.05.23"
-var maxTime = "00:00:00"
+var maxTime = "08:00:00"
 
 
 
@@ -282,30 +282,30 @@ function gridPoints() {
     chartPoints();
     
 
-    console.log(maxMPH)
+    // console.log(maxMPH)
 
 
-    console.log({
-        mph0to25
-    })
-    console.log({
-        mph25to65
-    })
-    console.log({
-        mph65to100
-    })
-    console.log({
-        mph100to150
-    })
-    console.log({
-        mph150to500
-    })
-    console.log({
-        mph500AndOver
-    })
-    console.log({mphArray})
+    // console.log({
+    //     mph0to25
+    // })
+    // console.log({
+    //     mph25to65
+    // })
+    // console.log({
+    //     mph65to100
+    // })
+    // console.log({
+    //     mph100to150
+    // })
+    // console.log({
+    //     mph150to500
+    // })
+    // console.log({
+    //     mph500AndOver
+    // })
+    // console.log({mphArray})
 
-    console.log(mph0to25 + mph25to65 + mph65to100 + mph100to150 + mph150to500 + mph500AndOver)
+    // console.log(mph0to25 + mph25to65 + mph65to100 + mph100to150 + mph150to500 + mph500AndOver)
 }
 
 var numGreaterThan = 0
@@ -367,7 +367,6 @@ function createPointRow(point, index, lastPoint) {
         maxMPH.push(point)
         maxMPH.push(mph)
     } else if (mph > maxMPH[1]) {
-        console.log(maxMPH)
         maxMPH.pop()
         maxMPH.pop()
         maxMPH.push(point)
@@ -474,23 +473,13 @@ slider.oninput = function () {
     minUpper = totalMin + range
     rangeText.innerHTML = `<b>${rangeMin*2} min. Range:</b> <u>${display(minLower)}</u> to <u>${display(minUpper)}</u><br><br>`;
     removeAllcircles()
+    removeAllTowers()
     drawCircles();
 }
 
 function display(a) {
 
-
     let dateString = formatDate(new Date(a * 1000))
-
-    // var hours = Math.trunc(a / 60);
-    // let amPm = "";
-    // if (hours >= 12) {
-    //     hours = hours - 12
-    //     amPm = "pm"
-    // } else {
-    //     amPm = "am"
-    // }
-    // var minutes = a % 60;
     return dateString;
 }
 

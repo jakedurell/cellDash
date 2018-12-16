@@ -1,4 +1,7 @@
 var allLabelCoords = []
+var circles = [];
+var circleMarkers = [];
+var centerMarkers = [];
 
 function drawCircles() {
 
@@ -14,8 +17,7 @@ function drawCircles() {
         if (pointDateTime >= minGMT &&
             pointDateTime <= maxGMT) {
                 
-        
-                mapPoints.push(el)
+            mapPoints.push(el)
 
             allPIndex.push(index)
         }
@@ -168,6 +170,8 @@ function drawCircles() {
         circleMarkers.push(circleMarker)
 
     }
+
+    drawTowers()
 
 }
 

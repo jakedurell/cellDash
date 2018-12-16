@@ -55,14 +55,15 @@ with open('reportAU.csv', mode = 'r') as csvfile:
                 imsi = float(line["IMSI"])
 
             if location1Array[3] == '' or (isinstance(location1Array[3], float) and  math.isnan(location1Array[3])):
-                fourthNum = 0
+                sector = 0
             else:
-                fourthNum = float(location1Array[3])
+                sector = float(location1Array[3])
+                print sector
 
             if location1Array[4] == '' or (isinstance(location1Array[4], float) and  math.isnan(location1Array[4])):
-                fifthNum = 0
+                beamwidth = 0
             else:
-                fifthNum = float(location1Array[4])
+                beamwidth = float(location1Array[4])
 
             item = str(line["Item"])
 
@@ -79,29 +80,37 @@ with open('reportAU.csv', mode = 'r') as csvfile:
                 "firstNum": location1Array[0],
                 "longitude": float(location1Array[1]),
                 "latitude": float(location1Array[2]),
-                "fourthNum": fourthNum,
-                "fifthNum": fifthNum
+                "sector": sector,
+                "beamwidth": beamwidth
             }
             line_count += 1
             arrayList.append(pointAttributes)
 
 
-
             if line["CellLocation2"]:
 
                 if line["CellLocation2"] == '' or (isinstance(line["CellLocation2"], float) and  math.isnan(line["CellLocation2"])):
-                    location2Array = ["",0,0,"",""]
+                    continue                
                 else:
                     location2Array = line["CellLocation2"].split(':')
 
-                pointAttributes["item"] = item + ".1",
-                pointAttributes["firstNum"] = location2Array[0],
-                pointAttributes["longitude"] = float(location2Array[1]),
-                pointAttributes["latitude"] = float(location2Array[2]),
-                pointAttributes["fourthNum"] = location2Array[3],
-                pointAttributes["fifthNum"] = location2Array[4]
+                    pointAttributes2 =	{
+                        "gmtDateTime": int(date_time_obj.strftime('%s')),
+                        "item": item + ".1",
+                        "utcDate": line["utcDate"],
+                        "utcTime": line["utcTime"],
+                        "seizureTime": line["SeizureTime"],
+                        "elapsedTime": line["ET"],
+                        "imei": imei,
+                        "imsi": imsi,
+                        "firstNum": location2Array[0],
+                        "longitude": float(location2Array[1]),
+                        "latitude": float(location2Array[2]),
+                        "sector": sector,
+                        "beamwidth": beamwidth
+                    }
                 
-                arrayList.append(pointAttributes)
+                arrayList.append(pointAttributes2)
 
     # arrayList.sort(key=lambda item:item['gmtDateTime'], reverse=False)
     # # print arrayList
@@ -129,5 +138,5 @@ with open('reportAU.csv', mode = 'r') as csvfile:
     #     i["locationText"] = result["destination_addresses"][0]
         
     print len(arrayList)
-    with open('allAUPoints.json', 'w') as outfile:
-        json.dump(arrayList, outfile)
+    # with open('allAUPoints.json', 'w') as outfile:
+    #     json.dump(arrayList, outfile)
