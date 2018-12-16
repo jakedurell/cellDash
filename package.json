@@ -4,6 +4,7 @@
   "description": "Cell Tower Data Analysis",
   "dependencies": {
     "chart.js": "^2.7.3",
+    "express": "^4.16.3",
     "moment-timezone": "^0.5.23"
   },
   "devDependencies": {},
@@ -19,5 +20,7 @@
   "bugs": {
     "url": "https://github.com/jakedurell/cellDash/issues"
   },
-  "homepage": "https://github.com/jakedurell/cellDash#readme"
+  "homepage": "https://github.com/jakedurell/cellDash#readme",
+  "main": "index.js",
+  "keywords": []
 }

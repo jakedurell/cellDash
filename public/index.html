@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <!-- <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/9.0.0/nouislider.min.css' rel="stylesheet">
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/9.0.0/nouislider.js'></script>
+
+
+    <!-- CSS File -->
+    <title>Brigham Cell Locations</title>
+
+</head>
+
+<h1 id="title">VT Privateye LLC - Cell Tower Data Summary Report</h1>
+<div id="cellLocationMap"></div>
+<br>
+<div id="test5" class="noUiSlider" style="height: 50px; width: 100%;"></div>
+
+
+<div class="slidecontainer">
+    <style data="test" type="text/css"></style>
+
+    <input type="range" min="1325" max="1435" value="1380" class="slider" id="myRange">
+    <!-- <div class="pointPlot"></div> -->
+    <br>
+    <p><span id="range"></span></p>
+    <p><span id="rangeDesc"></span></p>
+
+</div>
+
+
+
+<div class="chartWrapper">
+    <div class="chartAreaWrapper">
+        <canvas id="line-chart" width="4000" height="200"></canvas>
+
+        <canvas id="line-chart2" height="200" width="4000"></canvas>
+    </div>
+</div>
+
+<div id="tableTitleDiv">
+    <h1 id="tableTitle">Travel Segments Detail: Distance / Duration / Velocity</h1>
+    <small id="titleNote"><i class='fas fa-exclamation-triangle'></i>  Items marked in red with exclamation icon where implied cell duration exceeds Google estimated trip duration.</small>
+    <br>
+    <small id="titleNote">(Google estimated trip duration is provided by the Google Distance Matrix API through requests for "optimistic" travel times.)</small>
+</div>
+<div id="myTable">
+
+</div>
+
+<div id="pointText">
+
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+<!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?    v=3.exp&sensor=false&libraries=places,drawing,geometry"></script> -->
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAztnit8iGSKC0-pA6XbmwObTaa47tRtO8&callback=initMap&libraries=places,drawing,geometry"
+    async defer></script>
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU"
+    crossorigin="anonymous">
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.16/moment-timezone-with-data.min.js"></script>
+
+<script src="./cellData/allPoints.js"></script>
+<script src="./cellData/allAUPoints.js"></script>
+<script src="drawCircles.js"></script>
+<script src="drawTowers.js"></script>
+<script src="main.js"></script>
+<link a href='app.css' rel='stylesheet' type='text/css'>
+
+
+
+
+</body>
+
+
+
+</html>
