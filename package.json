@@ -1,0 +1,24 @@
+{
+  "name": "celldash",
+  "version": "1.0.0",
+  "description": "Cell Tower Data Analysis",
+  "main": "index.js",
+  "dependencies": {
+    "chart.js": "^2.7.3",
+    "moment-timezone": "^0.5.23"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jakedurell/cellDash.git"
+  },
+  "author": "Jake Durell",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/jakedurell/cellDash/issues"
+  },
+  "homepage": "https://github.com/jakedurell/cellDash#readme"
+}
